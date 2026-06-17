@@ -5,13 +5,22 @@ struct SettingsView: View {
 
     init(container: AppContainer) {
         _viewModel = StateObject(
-            wrappedValue: SettingsViewModel(settingsStore: container.settingsStore)
+            wrappedValue: SettingsViewModel(settingsStore: container.settingsStore, authSession: container.authSession, profileService: container.profileService)
         )
     }
 
     var body: some View {
         NavigationStack {
             Form {
+                Section("Account") {
+                    Label(viewModel.authSession.isAuthenticated ? "Connected to backend" : "Mock session", systemImage: viewModel.authSession.isAuthenticated ? "checkmark.shield.fill" : "wand.and.sparkles")
+                        .foregroundStyle(viewModel.authSession.isAuthenticated ? DSColor.matcha : DSColor.yuzu)
+
+                    if viewModel.authSession.isAuthenticated {
+                        Button("Log Out", role: .destructive) { viewModel.authSession.logout() }
+                    }
+                }
+
                 Section("Appearance") {
                     Toggle("Use System Theme", isOn: $viewModel.useSystemTheme)
                 }
@@ -26,6 +35,12 @@ struct SettingsView: View {
                     Picker("Activity", selection: $viewModel.activityLevel) {
                         ForEach(ActivityLevel.allCases) { level in
                             Text(level.title).tag(level)
+                        }
+                    }
+
+                    Picker("Diet", selection: $viewModel.dietaryPreference) {
+                        ForEach(DietaryPreference.allCases) { diet in
+                            Text(diet.title).tag(diet)
                         }
                     }
 
@@ -55,7 +70,7 @@ struct SettingsView: View {
 
                 Section {
                     Button("Save Profile") {
-                        viewModel.save()
+                        Task { await viewModel.save() }
                     }
                 }
 
@@ -71,6 +86,7 @@ struct SettingsView: View {
             .appBackground()
         }
     }
+
 
     private func metricSlider(
         title: String,

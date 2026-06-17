@@ -5,20 +5,23 @@ struct OnboardingView: View {
     @State private var heightCentimeters: Double
     @State private var weightKilograms: Double
     @State private var activityLevel: ActivityLevel
+    @State private var dietaryPreference: DietaryPreference
 
-    let onComplete: (FitnessGoal, Double, Double, ActivityLevel) -> Void
+    let onComplete: (FitnessGoal, Double, Double, ActivityLevel, DietaryPreference) -> Void
 
     init(
         initialGoal: FitnessGoal,
         initialHeightCentimeters: Double,
         initialWeightKilograms: Double,
         initialActivityLevel: ActivityLevel,
-        onComplete: @escaping (FitnessGoal, Double, Double, ActivityLevel) -> Void
+        initialDietaryPreference: DietaryPreference,
+        onComplete: @escaping (FitnessGoal, Double, Double, ActivityLevel, DietaryPreference) -> Void
     ) {
         _selectedGoal = State(initialValue: initialGoal)
         _heightCentimeters = State(initialValue: initialHeightCentimeters)
         _weightKilograms = State(initialValue: initialWeightKilograms)
         _activityLevel = State(initialValue: initialActivityLevel)
+        _dietaryPreference = State(initialValue: initialDietaryPreference)
         self.onComplete = onComplete
     }
 
@@ -54,6 +57,17 @@ struct OnboardingView: View {
                             metricSlider(title: "Weight", value: $weightKilograms, range: 40...160, suffix: "kg")
 
                             VStack(alignment: .leading, spacing: DSSpacing.sm) {
+                                Text("Diet")
+                                    .font(DSTypography.headline)
+                                Picker("Diet", selection: $dietaryPreference) {
+                                    ForEach(DietaryPreference.allCases) { diet in
+                                        Text(diet.title).tag(diet)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                            }
+
+                            VStack(alignment: .leading, spacing: DSSpacing.sm) {
                                 Text("Activity")
                                     .font(DSTypography.headline)
                                 Picker("Activity", selection: $activityLevel) {
@@ -65,7 +79,7 @@ struct OnboardingView: View {
                             }
 
                             PrimaryButton("Start Cooking", systemImage: "checkmark") {
-                                onComplete(selectedGoal, heightCentimeters, weightKilograms, activityLevel)
+                                onComplete(selectedGoal, heightCentimeters, weightKilograms, activityLevel, dietaryPreference)
                             }
                         }
                     }

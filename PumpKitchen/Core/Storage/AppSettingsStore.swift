@@ -5,6 +5,7 @@ protocol AppSettingsStore: AnyObject {
     var heightCentimeters: Double { get set }
     var weightKilograms: Double { get set }
     var activityLevel: ActivityLevel { get set }
+    var dietaryPreference: DietaryPreference { get set }
     var backendBaseURL: String { get set }
     var useMockGeneration: Bool { get set }
     var hasCompletedOnboarding: Bool { get set }
@@ -16,6 +17,7 @@ final class UserDefaultsAppSettingsStore: AppSettingsStore {
         static let heightCentimeters = "settings.heightCentimeters"
         static let weightKilograms = "settings.weightKilograms"
         static let activityLevel = "settings.activityLevel"
+        static let dietaryPreference = "settings.dietaryPreference"
         static let backendBaseURL = "settings.backendBaseURL"
         static let useMockGeneration = "settings.useMockGeneration"
         static let hasCompletedOnboarding = "settings.hasCompletedOnboarding"
@@ -67,9 +69,22 @@ final class UserDefaultsAppSettingsStore: AppSettingsStore {
         }
     }
 
+    var dietaryPreference: DietaryPreference {
+        get { userDefaults.string(forKey: Key.dietaryPreference).flatMap(DietaryPreference.init(rawValue:)) ?? .regular }
+        set { userDefaults.set(newValue.rawValue, forKey: Key.dietaryPreference) }
+    }
+
+
+
+
+
+
+
+
+
     var backendBaseURL: String {
         get {
-            userDefaults.string(forKey: Key.backendBaseURL) ?? ""
+            userDefaults.string(forKey: Key.backendBaseURL) ?? "https://fraternal-euphemism-snowflake.ngrok-free.dev"
         }
         set {
             userDefaults.set(newValue.trimmingCharacters(in: .whitespacesAndNewlines), forKey: Key.backendBaseURL)
@@ -79,7 +94,7 @@ final class UserDefaultsAppSettingsStore: AppSettingsStore {
     var useMockGeneration: Bool {
         get {
             guard userDefaults.object(forKey: Key.useMockGeneration) != nil else {
-                return true
+                return false
             }
             return userDefaults.bool(forKey: Key.useMockGeneration)
         }

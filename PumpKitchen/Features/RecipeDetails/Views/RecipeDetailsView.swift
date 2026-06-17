@@ -16,11 +16,16 @@ struct RecipeDetailsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DSSpacing.lg) {
+                RecipeImageView(url: viewModel.recipe.imageURL)
+                    .frame(height: 240)
+                    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
                 hero
+                favoriteButton
                 scalingSection
                 nutritionGrid
                 ingredientsSection
                 instructionsSection
+                if !viewModel.recipe.tips.isEmpty { tipsSection }
             }
             .padding(DSSpacing.lg)
         }
@@ -58,6 +63,9 @@ struct RecipeDetailsView: View {
                     HStack(spacing: DSSpacing.sm) {
                         Label("\(viewModel.recipe.cookingTimeMinutes) min", systemImage: "clock")
                         Label("\(viewModel.recipe.ingredients.count) items", systemImage: "leaf")
+                        if let difficulty = viewModel.recipe.difficulty, !difficulty.isEmpty {
+                            Label(difficulty.capitalized, systemImage: "chart.bar.fill")
+                        }
                     }
                     .font(DSTypography.caption)
                     .foregroundStyle(.secondary)
@@ -68,6 +76,13 @@ struct RecipeDetailsView: View {
                 Image(systemName: "fork.knife.circle.fill")
                     .font(.system(size: 46))
                     .foregroundStyle(DSColor.matcha)
+            }
+
+            if let description = viewModel.recipe.description, !description.isEmpty {
+                Text(description)
+                    .font(DSTypography.body)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             if !viewModel.recipe.tags.isEmpty {
@@ -92,6 +107,15 @@ struct RecipeDetailsView: View {
         .shadow(color: .black.opacity(0.08), radius: 18, x: 0, y: 10)
     }
 
+
+    private var favoriteButton: some View {
+        PrimaryButton(
+            viewModel.isFavorite ? "Saved to Favorites" : "Add to Favorites",
+            systemImage: viewModel.isFavorite ? "heart.fill" : "heart"
+        ) {
+            Task { await viewModel.toggleFavorite() }
+        }
+    }
 
     private var scalingSection: some View {
         section(title: "Scale from what you have", icon: "scalemass.fill") {
@@ -175,6 +199,22 @@ struct RecipeDetailsView: View {
                             .clipShape(Circle())
 
                         Text(step)
+                            .font(DSTypography.body)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+    }
+
+    private var tipsSection: some View {
+        section(title: "Tips & Lifehacks", icon: "lightbulb.fill") {
+            VStack(alignment: .leading, spacing: DSSpacing.md) {
+                ForEach(viewModel.recipe.tips, id: \.self) { tip in
+                    HStack(alignment: .top, spacing: DSSpacing.sm) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(DSColor.yuzu)
+                        Text(tip)
                             .font(DSTypography.body)
                             .fixedSize(horizontal: false, vertical: true)
                     }

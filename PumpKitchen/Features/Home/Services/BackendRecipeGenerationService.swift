@@ -2,61 +2,39 @@ import Foundation
 
 final class BackendRecipeGenerationService: RecipeGenerationService {
     private let settingsStore: AppSettingsStore
+    private let tokenStore: AuthTokenStore
     private let session: URLSession
-    private let encoder: JSONEncoder
-    private let decoder: JSONDecoder
 
-    init(
-        settingsStore: AppSettingsStore,
-        session: URLSession = .shared,
-        encoder: JSONEncoder = JSONEncoder(),
-        decoder: JSONDecoder = JSONDecoder()
-    ) {
+    init(settingsStore: AppSettingsStore, tokenStore: AuthTokenStore, session: URLSession = .shared) {
         self.settingsStore = settingsStore
+        self.tokenStore = tokenStore
         self.session = session
-        self.encoder = encoder
-        self.decoder = decoder
     }
 
     func generateRecipes(request: RecipeGenerationRequest) async throws -> [Recipe] {
-        let baseURLString = settingsStore.backendBaseURL
-        guard !baseURLString.isEmpty else {
-            throw BackendRecipeGenerationError.missingBaseURL
-        }
-
-        guard let baseURL = URL(string: baseURLString) else {
+        guard let baseURL = URL(string: settingsStore.backendBaseURL), !settingsStore.backendBaseURL.isEmpty else {
             throw BackendRecipeGenerationError.invalidBaseURL
         }
+        guard let token = tokenStore.accessToken else { throw BackendRecipeGenerationError.authenticationRequired }
 
-        let endpointURL = baseURL.appending(path: "v1/recipes/generate")
-        var urlRequest = URLRequest(url: endpointURL)
+        var urlRequest = URLRequest(url: baseURL.appending(path: "recipes/generate"))
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        urlRequest.httpBody = try encoder.encode(RecipeGenerationRequestDTO(from: request, settingsStore: settingsStore))
+        urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        urlRequest.setValue("true", forHTTPHeaderField: "ngrok-skip-browser-warning")
+        urlRequest.httpBody = try JSONEncoder().encode(RecipeRequestDTO(ingredients: request.ingredients))
 
         let (data, response) = try await session.data(for: urlRequest)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkError.invalidResponse
+        guard let response = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
+        guard (200...299).contains(response.statusCode) else {
+            throw BackendRecipeGenerationError.serverMessage(Self.errorMessage(from: data) ?? "Backend returned status \(response.statusCode).")
         }
-
-        guard (200...299).contains(httpResponse.statusCode) else {
-            throw BackendRecipeGenerationError.serverMessage(extractErrorMessage(from: data) ?? "Backend returned status \(httpResponse.statusCode).")
-        }
-
-        let responseDTO = try decoder.decode(RecipeGenerationResponseDTO.self, from: data)
-        return responseDTO.recipes.map(Recipe.init(dto:))
+        return try JSONDecoder().decode([BackendRecipeDTO].self, from: data).map(Recipe.init(backendDTO:))
     }
 
-    private func extractErrorMessage(from data: Data) -> String? {
-        guard
-            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let message = object["message"] as? String
-        else {
-            return nil
-        }
-
-        return message
+    private static func errorMessage(from data: Data) -> String? {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return object["message"] as? String ?? object["detail"] as? String
     }
 }
 
@@ -65,107 +43,127 @@ final class BackendFallbackRecipeGenerationService: RecipeGenerationService {
     private let fallback: RecipeGenerationService
     private let settingsStore: AppSettingsStore
 
-    init(
-        backend: RecipeGenerationService,
-        fallback: RecipeGenerationService,
-        settingsStore: AppSettingsStore
-    ) {
+    init(backend: RecipeGenerationService, fallback: RecipeGenerationService, settingsStore: AppSettingsStore) {
         self.backend = backend
         self.fallback = fallback
         self.settingsStore = settingsStore
     }
 
     func generateRecipes(request: RecipeGenerationRequest) async throws -> [Recipe] {
-        guard !settingsStore.useMockGeneration, !settingsStore.backendBaseURL.isEmpty else {
-            return try await fallback.generateRecipes(request: request)
-        }
-
+        if settingsStore.useMockGeneration { return try await fallback.generateRecipes(request: request) }
         return try await backend.generateRecipes(request: request)
     }
 }
 
 enum BackendRecipeGenerationError: LocalizedError {
-    case missingBaseURL
-    case invalidBaseURL
-    case serverMessage(String)
-
+    case invalidBaseURL, authenticationRequired, serverMessage(String)
     var errorDescription: String? {
         switch self {
-        case .missingBaseURL:
-            "Backend URL is empty. Mock recipes are available until backend is configured."
-        case .invalidBaseURL:
-            "Backend URL is invalid."
-        case .serverMessage(let message):
-            message
+        case .invalidBaseURL: "Backend URL is invalid."
+        case .authenticationRequired: "Login is required to generate recipes."
+        case .serverMessage(let message): message
         }
     }
 }
 
-private struct RecipeGenerationRequestDTO: Encodable {
-    let ingredients: [String]
-    let fitnessGoal: String?
-    let profile: ProfileDTO
+private struct RecipeRequestDTO: Encodable { let ingredients: [String] }
 
-    init(from request: RecipeGenerationRequest, settingsStore: AppSettingsStore) {
-        self.ingredients = request.ingredients
-        self.fitnessGoal = request.fitnessGoal?.rawValue
-        self.profile = ProfileDTO(
-            heightCentimeters: settingsStore.heightCentimeters,
-            weightKilograms: settingsStore.weightKilograms,
-            activityLevel: settingsStore.activityLevel.rawValue,
-            goal: settingsStore.defaultGoal.rawValue
-        )
+struct BackendRecipeDTO: Decodable {
+    let id: Int
+    let title: String
+    let description: String?
+    let imageURL: URL?
+    let cookTime: String?
+    let difficulty: String?
+    let ingredientsFull: [String]
+    let steps: [String]
+    let nutrition: [String: JSONValue]?
+    let whyFitsGoal: String?
+    let tips: [String]?
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, description, difficulty, steps, nutrition, tips
+        case imageURL = "image_url"
+        case cookTime = "cook_time"
+        case ingredientsFull = "ingredients_full"
+        case whyFitsGoal = "why_fits_goal"
     }
 }
 
-private struct ProfileDTO: Encodable {
-    let heightCentimeters: Double
-    let weightKilograms: Double
-    let activityLevel: String
-    let goal: String
+extension Recipe {
+    init(backendDTO dto: BackendRecipeDTO) {
+        let parsedNutrition = BackendNutritionParser(values: dto.nutrition)
+        self.init(
+            id: Self.stableUUID(for: dto.id),
+            title: dto.title,
+            description: dto.description,
+            imageURL: dto.imageURL,
+            cookingTimeMinutes: Self.minutes(from: dto.cookTime),
+            difficulty: dto.difficulty,
+            ingredients: dto.ingredientsFull.map(Self.parseIngredient),
+            instructions: dto.steps,
+            nutrition: NutritionInfo(
+                calories: parsedNutrition.calories,
+                protein: parsedNutrition.protein,
+                fats: parsedNutrition.fats,
+                carbs: parsedNutrition.carbs
+            ),
+            tips: dto.tips ?? [dto.whyFitsGoal].compactMap { $0 }.filter { !$0.isEmpty },
+            tags: [dto.difficulty].compactMap { $0 }.filter { !$0.isEmpty }
+        )
+    }
+
+    static func stableUUID(for id: Int) -> UUID {
+        UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", id)) ?? UUID()
+    }
+
+    var backendID: Int? {
+        guard uuidStringPrefix else { return nil }
+        return Int(id.uuidString.suffix(12))
+    }
+
+    private var uuidStringPrefix: Bool {
+        id.uuidString.hasPrefix("00000000-0000-0000-0000-")
+    }
+
+    static func minutes(from value: String?) -> Int {
+        guard let value else { return 0 }
+        return Int(value.split(whereSeparator: { !$0.isNumber }).first ?? "0") ?? 0
+    }
+
+    static func parseIngredient(_ value: String) -> Ingredient {
+        let separators = [":", " - ", " – "]
+        for separator in separators where value.contains(separator) {
+            let parts = value.components(separatedBy: separator)
+            return Ingredient(name: parts.first?.trimmingCharacters(in: .whitespaces) ?? value, amount: parts.dropFirst().joined(separator: separator).trimmingCharacters(in: .whitespaces))
+        }
+        return Ingredient(name: value, amount: "")
+    }
 }
 
-private struct RecipeGenerationResponseDTO: Decodable {
-    let recipes: [RecipeDTO]
-}
-
-private struct RecipeDTO: Decodable {
-    let id: UUID?
-    let title: String
-    let cookingTimeMinutes: Int
-    let ingredients: [IngredientDTO]
-    let instructions: [String]
-    let nutrition: NutritionDTO
-    let tags: [String]
-}
-
-private struct IngredientDTO: Decodable {
-    let name: String
-    let amount: String
-}
-
-private struct NutritionDTO: Decodable {
+private struct BackendNutritionParser {
     let calories: Int
     let protein: Double
     let fats: Double
     let carbs: Double
-}
 
-private extension Recipe {
-    init(dto: RecipeDTO) {
-        self.init(
-            id: dto.id ?? UUID(),
-            title: dto.title,
-            cookingTimeMinutes: dto.cookingTimeMinutes,
-            ingredients: dto.ingredients.map { Ingredient(name: $0.name, amount: $0.amount) },
-            instructions: dto.instructions,
-            nutrition: NutritionInfo(
-                calories: dto.nutrition.calories,
-                protein: dto.nutrition.protein,
-                fats: dto.nutrition.fats,
-                carbs: dto.nutrition.carbs
-            ),
-            tags: dto.tags
-        )
+    init(values: [String: JSONValue]?) {
+        calories = Int(Self.number(in: values, keys: ["calories", "kcal", "калории"]))
+        protein = Self.number(in: values, keys: ["protein", "proteins", "белки"])
+        fats = Self.number(in: values, keys: ["fats", "fat", "жиры"])
+        carbs = Self.number(in: values, keys: ["carbs", "carbohydrates", "углеводы"])
+    }
+
+    private static func number(in values: [String: JSONValue]?, keys: [String]) -> Double {
+        guard let values else { return 0 }
+        for (key, value) in values where keys.contains(key.lowercased()) {
+            switch value {
+            case .int(let number): return Double(number)
+            case .double(let number): return number
+            case .string(let string): return Double(string.split(whereSeparator: { !$0.isNumber && $0 != "." }).first ?? "0") ?? 0
+            default: continue
+            }
+        }
+        return 0
     }
 }
