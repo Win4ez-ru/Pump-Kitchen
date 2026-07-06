@@ -26,72 +26,149 @@ struct OnboardingView: View {
     }
 
     var body: some View {
-        ZStack {
-            DSColor.ricePaper.ignoresSafeArea()
-
+        GeometryReader { viewport in
             ScrollView {
-                VStack(alignment: .leading, spacing: DSSpacing.xl) {
-                    VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                        Text("Pump Kitchen")
-                            .font(DSTypography.largeTitle)
-                            .foregroundStyle(DSColor.graphite)
-                        Text("Tell us the basics once. Recipes will adapt to your body, activity, and goal.")
-                            .font(DSTypography.body)
-                            .foregroundStyle(DSColor.inkMuted)
-                    }
+                VStack(alignment: .leading, spacing: 26) {
+                    onboardingHero
+                        .frame(width: max(viewport.size.width - 36, 0))
+                        .dsAppear(delay: 0.02)
 
-                    GlassPanel {
-                        VStack(alignment: .leading, spacing: DSSpacing.lg) {
-                            VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                                Text("Goal")
-                                    .font(DSTypography.headline)
-                                Picker("Goal", selection: $selectedGoal) {
-                                    ForEach(FitnessGoal.allCases) { goal in
-                                        Text(goal.title).tag(goal)
+                    VStack(alignment: .leading, spacing: 24) {
+                        optionSection("Goal") {
+                            DSSegmentedControl(
+                                options: [
+                                    (.fatLoss, "Cut"),
+                                    (.maintenance, "Maintain"),
+                                    (.muscleGain, "Bulk")
+                                ],
+                                selection: $selectedGoal
+                            )
+                        }
+
+                        metricSlider(
+                            title: "Height",
+                            value: $heightCentimeters,
+                            range: 130...220,
+                            suffix: "cm"
+                        )
+
+                        metricSlider(
+                            title: "Weight",
+                            value: $weightKilograms,
+                            range: 40...160,
+                            suffix: "kg"
+                        )
+
+                        optionSection("Diet") {
+                            Menu {
+                                ForEach(onboardingDiets) { diet in
+                                    Button {
+                                        withAnimation(DSMotion.snappy) {
+                                            dietaryPreference = diet
+                                        }
+                                    } label: {
+                                        Text(LocalizedStringKey(diet.title))
                                     }
                                 }
-                                .pickerStyle(.segmented)
-                            }
-
-                            metricSlider(title: "Height", value: $heightCentimeters, range: 130...220, suffix: "cm")
-                            metricSlider(title: "Weight", value: $weightKilograms, range: 40...160, suffix: "kg")
-
-                            VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                                Text("Diet")
-                                    .font(DSTypography.headline)
-                                Picker("Diet", selection: $dietaryPreference) {
-                                    ForEach(DietaryPreference.allCases) { diet in
-                                        Text(diet.title).tag(diet)
-                                    }
+                            } label: {
+                                HStack {
+                                    Text(LocalizedStringKey(dietaryPreference.title))
+                                        .font(DSTypography.body.weight(.semibold))
+                                        .foregroundStyle(DSColor.textPrimary)
+                                    Spacer()
+                                    Image(systemName: "chevron.up.chevron.down")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(DSColor.accent)
                                 }
-                                .pickerStyle(.menu)
-                            }
-
-                            VStack(alignment: .leading, spacing: DSSpacing.sm) {
-                                Text("Activity")
-                                    .font(DSTypography.headline)
-                                Picker("Activity", selection: $activityLevel) {
-                                    ForEach(ActivityLevel.allCases) { level in
-                                        Text(level.title).tag(level)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                            }
-
-                            PrimaryButton("Start Cooking", systemImage: "checkmark") {
-                                onComplete(selectedGoal, heightCentimeters, weightKilograms, activityLevel, dietaryPreference)
+                                .padding(.horizontal, 15)
+                                .frame(height: 48)
+                                .background(DSColor.elevatedCard)
+                                .clipShape(Capsule())
                             }
                         }
-                    }
 
-                    VStack(alignment: .leading, spacing: DSSpacing.md) {
-                        OnboardingBenefit(icon: "person.crop.circle.fill", title: "Personal profile", subtitle: "Your goal and activity guide recipe suggestions.")
-                        OnboardingBenefit(icon: "scalemass.fill", title: "Flexible portions", subtitle: "Add ingredient amounts in Home. The backend can scale the rest.")
-                        OnboardingBenefit(icon: "arrow.triangle.2.circlepath", title: "Ingredient swaps", subtitle: "Recipe details include substitute ideas when something is missing.")
+                        optionSection("Activity") {
+                            DSSegmentedControl(
+                                options: ActivityLevel.allCases.map { ($0, $0.title) },
+                                selection: $activityLevel
+                            )
+                        }
+
+                        PrimaryButton("Start Cooking", systemImage: "checkmark") {
+                            withAnimation(DSMotion.gentle) {
+                                onComplete(
+                                    selectedGoal,
+                                    heightCentimeters,
+                                    weightKilograms,
+                                    activityLevel,
+                                    dietaryPreference
+                                )
+                            }
+                        }
+                        .padding(.top, 4)
                     }
+                    .frame(width: max(viewport.size.width - 36, 0), alignment: .leading)
+                    .dsAppear(delay: 0.14)
                 }
-                .padding(DSSpacing.lg)
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .padding(.bottom, max(30, viewport.safeAreaInsets.bottom + 18))
             }
+            .appBackground()
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+    }
+
+    private var onboardingDiets: [DietaryPreference] {
+        [.regular, .vegetarian, .vegan]
+    }
+
+    private var onboardingHero: some View {
+        ZStack(alignment: .bottomLeading) {
+            RecipeImageView(
+                url: URL(string: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1600")
+            )
+
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0.24),
+                    .init(color: .black.opacity(0.2), location: 0.58),
+                    .init(color: .black.opacity(0.82), location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text("PUMP KITCHEN")
+                    .font(DSTypography.micro)
+                    .foregroundStyle(DSColor.accent)
+                    .tracking(1.3)
+
+                Text("Your kitchen, your rhythm")
+                    .font(.system(size: 31, weight: .semibold, design: .serif))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+            }
+            .padding(18)
+        }
+        .frame(height: 300)
+        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .shadow(color: .black.opacity(0.2), radius: 22, x: 0, y: 14)
+    }
+
+    private func optionSection<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(LocalizedStringKey(title))
+                .font(.system(size: 18, weight: .semibold, design: .serif))
+                .foregroundStyle(DSColor.textPrimary)
+
+            content()
         }
     }
 
@@ -101,45 +178,21 @@ struct OnboardingView: View {
         range: ClosedRange<Double>,
         suffix: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: DSSpacing.sm) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(title)
-                    .font(DSTypography.headline)
+                Text(LocalizedStringKey(title))
+                    .font(.system(size: 18, weight: .semibold, design: .serif))
+                    .foregroundStyle(DSColor.textPrimary)
                 Spacer()
-                Text("\(Int(value.wrappedValue)) \(suffix)")
-                    .font(DSTypography.headline)
-                    .foregroundStyle(DSColor.matcha)
+                (Text("\(Int(value.wrappedValue)) ")
+                    + Text(LocalizedStringKey(suffix)))
+                    .font(DSTypography.caption.weight(.semibold))
+                    .foregroundStyle(DSColor.accent)
+                    .contentTransition(.numericText())
             }
 
             Slider(value: value, in: range, step: 1)
-                .tint(DSColor.matcha)
+                .tint(DSColor.accent)
         }
-    }
-}
-
-private struct OnboardingBenefit: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: DSSpacing.md) {
-            Image(systemName: icon)
-                .foregroundStyle(DSColor.matcha)
-                .frame(width: 30, height: 30)
-                .background(DSColor.matcha.opacity(0.12))
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: DSSpacing.xs) {
-                Text(title)
-                    .font(DSTypography.headline)
-                Text(subtitle)
-                    .font(DSTypography.body)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(DSSpacing.md)
-        .background(.thinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 }

@@ -16,7 +16,7 @@ final class HistoryViewModel: ObservableObject {
         do {
             queries = try await historyRepository.fetchHistory()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingErrorMessage.storage(error)
         }
     }
 
@@ -25,7 +25,7 @@ final class HistoryViewModel: ObservableObject {
             try await historyRepository.deleteQuery(id: query.id)
             queries.removeAll { $0.id == query.id }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingErrorMessage.storage(error)
         }
     }
 }

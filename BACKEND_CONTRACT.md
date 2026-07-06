@@ -15,32 +15,25 @@ https://api.pumpkitchen.app
 The app calls:
 
 ```http
-POST /v1/recipes/generate
+GET /health
+POST /v1/auth/register
+POST /v1/auth/login
+PATCH /v1/auth/me/profile
+GET /v1/recipes/search
+GET /v1/recipes/saved
 ```
 
-## Generate Recipes Request
+## Search Recipes Request
 
-```json
-{
-  "ingredients": ["chicken breast 200g", "rice", "eggs 2"],
-  "fitnessGoal": "muscleGain",
-  "profile": {
-    "heightCentimeters": 180,
-    "weightKilograms": 82,
-    "activityLevel": "moderate",
-    "goal": "muscleGain"
-  }
-}
+```http
+GET /v1/recipes/search?ingredients=chicken%20250g&ingredients=rice%20150g&ingredients=eggs%203&goal=gain_muscle&diet=regular
 ```
 
 ### Fields
 
-- `ingredients`: required array of strings. Items may include user-provided amounts, for example `chicken 200g`.
-- `fitnessGoal`: string enum: `muscleGain`, `fatLoss`, `maintenance`.
-- `profile.heightCentimeters`: number.
-- `profile.weightKilograms`: number.
-- `profile.activityLevel`: string enum: `low`, `moderate`, `high`.
-- `profile.goal`: string enum: `muscleGain`, `fatLoss`, `maintenance`.
+- `ingredients`: required repeated query item. Items may include user-provided amounts, for example `chicken 250g`, `rice 150g`, or `eggs 3`.
+- `goal`: string enum: `gain_muscle`, `lose_weight`, `maintenance`.
+- `diet`: string enum: `regular`, `vegetarian`, `vegan`, `healthy`, `lactose_free`, `gluten_free`.
 
 ## Backend Behavior
 
@@ -68,7 +61,7 @@ POST /v1/recipes/generate
           "amount": "180 g"
         }
       ],
-      "instructions": [
+      "steps": [
         "Cook the rice until tender.",
         "Sear the chicken until golden.",
         "Combine and season to taste."
@@ -76,7 +69,7 @@ POST /v1/recipes/generate
       "nutrition": {
         "calories": 620,
         "protein": 48,
-        "fats": 18,
+        "fat": 18,
         "carbs": 66
       },
       "tags": ["High Protein", "Balanced"]
@@ -89,8 +82,24 @@ POST /v1/recipes/generate
 
 - `id` is optional for iOS; if missing, the app generates a local UUID.
 - Nutrition values are approximate for the returned portion.
-- Return 1 to 3 recipes for MVP.
+- Return 1 to 3 full recipes for MVP. Search results must include ingredients, cooking steps, and nutrition.
+- `GET /v1/recipes/saved` returns the same full recipe shape as search.
 - Return JSON only, no markdown.
+
+## Profile Update Request
+
+```http
+PATCH /v1/auth/me/profile
+```
+
+```json
+{
+  "goal": "gain_muscle",
+  "diet": "regular",
+  "name": "Pump Kitchen User",
+  "allergens": ["peanuts"]
+}
+```
 
 ## Error Response
 
@@ -139,10 +148,9 @@ Expected response:
 ## Backend Responsibilities
 
 - Store AI provider API keys securely on the server.
+- Protect `/v1/recipes/*` and profile endpoints with bearer auth.
 - Validate request fields.
 - Calculate nutrition targets from profile and goal.
 - Use fixed ingredient amounts as anchors when provided by the user.
 - Return JSON in the exact response shape above.
 - Add rate limiting before public release.
-- Add auth later when the app gets user accounts.
-

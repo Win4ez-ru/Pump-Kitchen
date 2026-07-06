@@ -5,9 +5,10 @@ import SwiftData
 struct AppContainer {
     let modelContainer: ModelContainer
     let recipeGenerationService: RecipeGenerationService
+    let recipeDetailsService: RecipeDetailsService
     let favoritesRepository: FavoritesRepository
     let historyRepository: HistoryRepository
-    let settingsStore: AppSettingsStore
+    let settingsStore: UserDefaultsAppSettingsStore
     let authSession: AuthSession
     let profileService: ProfileService
 
@@ -26,6 +27,7 @@ struct AppContainer {
                 settingsStore: settingsStore
             )
             let backendService = BackendRecipeGenerationService(settingsStore: settingsStore, tokenStore: tokenStore)
+            let backendDetailsService = BackendRecipeDetailsService(settingsStore: settingsStore, tokenStore: tokenStore)
             let localFavorites = SwiftDataFavoritesRepository(context: context)
             let favoritesRepository = ModeAwareFavoritesRepository(
                 local: localFavorites,
@@ -40,6 +42,11 @@ struct AppContainer {
                 recipeGenerationService: BackendFallbackRecipeGenerationService(
                     backend: backendService,
                     fallback: MockRecipeGenerationService(),
+                    settingsStore: settingsStore
+                ),
+                recipeDetailsService: BackendFallbackRecipeDetailsService(
+                    backend: backendDetailsService,
+                    fallback: NoopRecipeDetailsService(),
                     settingsStore: settingsStore
                 ),
                 favoritesRepository: favoritesRepository,

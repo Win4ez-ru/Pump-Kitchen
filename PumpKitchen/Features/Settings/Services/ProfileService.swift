@@ -1,7 +1,13 @@
 import Foundation
 
 protocol ProfileService {
-    func updateProfile(goal: FitnessGoal, diet: DietaryPreference) async throws
+    func updateProfile(goal: FitnessGoal, diet: DietaryPreference, name: String?, allergens: [String]?) async throws
+}
+
+extension ProfileService {
+    func updateProfile(goal: FitnessGoal, diet: DietaryPreference) async throws {
+        try await updateProfile(goal: goal, diet: diet, name: nil, allergens: nil)
+    }
 }
 
 final class BackendProfileService: ProfileService {
@@ -15,16 +21,24 @@ final class BackendProfileService: ProfileService {
         self.session = session
     }
 
-    func updateProfile(goal: FitnessGoal, diet: DietaryPreference) async throws {
+    func updateProfile(goal: FitnessGoal, diet: DietaryPreference, name: String?, allergens: [String]?) async throws {
         guard let baseURL = URL(string: settingsStore.backendBaseURL) else { throw ProfileServiceError.invalidURL }
         guard let token = tokenStore.accessToken else { throw ProfileServiceError.authenticationRequired }
 
-        var request = URLRequest(url: baseURL.appending(path: "auth/me/profile"))
+        var request = URLRequest(url: baseURL.appending(path: "v1/auth/me/profile"))
         request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("true", forHTTPHeaderField: "ngrok-skip-browser-warning")
-        request.httpBody = try JSONEncoder().encode(ProfileUpdateRequest(goal: goal.backendValue, diet: diet.backendValue))
+        request.setValue(settingsStore.appLanguage.languageCode, forHTTPHeaderField: "Accept-Language")
+        request.httpBody = try JSONEncoder().encode(
+            ProfileUpdateRequest(
+                goal: goal.backendValue,
+                diet: diet.backendValue,
+                name: name?.nilIfEmpty,
+                allergens: allergens?.cleaned.nilIfEmpty
+            )
+        )
 
         let (_, response) = try await session.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw ProfileServiceError.invalidResponse }
@@ -35,6 +49,8 @@ final class BackendProfileService: ProfileService {
 private struct ProfileUpdateRequest: Encodable {
     let goal: String
     let diet: String
+    let name: String?
+    let allergens: [String]?
 }
 
 private enum ProfileServiceError: LocalizedError {
@@ -44,7 +60,7 @@ private enum ProfileServiceError: LocalizedError {
         case .invalidURL: "Backend URL is invalid."
         case .authenticationRequired: "Login is required to update your backend profile."
         case .invalidResponse: "Backend returned an invalid response."
-        case .serverStatus(let status): "Profile update failed with status \(status)."
+        case .serverStatus: "Profile update failed."
         }
     }
 }
@@ -69,5 +85,22 @@ extension DietaryPreference {
         case .lactoseFree: "lactose_free"
         case .glutenFree: "gluten_free"
         }
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+private extension Array where Element == String {
+    var cleaned: [String] {
+        map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
+
+    var nilIfEmpty: [String]? {
+        isEmpty ? nil : self
     }
 }

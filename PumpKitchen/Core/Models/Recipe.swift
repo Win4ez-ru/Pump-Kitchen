@@ -12,6 +12,7 @@ struct Recipe: Identifiable, Codable, Hashable {
     let nutrition: NutritionInfo
     let tips: [String]
     let tags: [String]
+    let backendIdentifier: String?
 
     init(
         id: UUID = UUID(),
@@ -24,7 +25,8 @@ struct Recipe: Identifiable, Codable, Hashable {
         instructions: [String],
         nutrition: NutritionInfo,
         tips: [String] = [],
-        tags: [String]
+        tags: [String],
+        backendIdentifier: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -37,11 +39,12 @@ struct Recipe: Identifiable, Codable, Hashable {
         self.nutrition = nutrition
         self.tips = tips
         self.tags = tags
+        self.backendIdentifier = backendIdentifier
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, title, description, imageURL, cookingTimeMinutes, difficulty
-        case ingredients, instructions, nutrition, tips, tags
+        case ingredients, instructions, nutrition, tips, tags, backendIdentifier
     }
 
     init(from decoder: Decoder) throws {
@@ -57,5 +60,6 @@ struct Recipe: Identifiable, Codable, Hashable {
         nutrition = try container.decode(NutritionInfo.self, forKey: .nutrition)
         tips = try container.decodeIfPresent([String].self, forKey: .tips) ?? []
         tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
+        backendIdentifier = try container.decodeIfPresent(String.self, forKey: .backendIdentifier)
     }
 }

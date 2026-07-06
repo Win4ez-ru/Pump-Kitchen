@@ -2,92 +2,120 @@ import SwiftUI
 
 struct RecipeCardView: View {
     let recipe: Recipe
+    let isSaved: Bool
+
+    init(recipe: Recipe, isSaved: Bool = false) {
+        self.recipe = recipe
+        self.isSaved = isSaved
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            RecipeImageView(url: recipe.imageURL)
-                .frame(height: 150)
+        ZStack(alignment: .bottomLeading) {
+            FittedRecipeImage(url: recipe.imageURL)
 
-            VStack(alignment: .leading, spacing: DSSpacing.md) {
-                HStack(alignment: .top, spacing: DSSpacing.md) {
-                    VStack(alignment: .leading, spacing: DSSpacing.xs) {
-                        Text(recipe.title)
-                            .font(DSTypography.title)
-                            .foregroundStyle(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.04), .black.opacity(0.78)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
-                        if let description = recipe.description, !description.isEmpty {
-                            Text(description)
-                                .font(DSTypography.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
-                        }
-                    }
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(DSColor.matcha)
-                }
+            VStack(alignment: .leading, spacing: 10) {
+                RecipeTagStrip(tags: recipe.tags, limit: 2, style: .overImage)
 
-                HStack(spacing: DSSpacing.md) {
-                    Label("\(recipe.cookingTimeMinutes) min", systemImage: "clock")
-                    if let difficulty = recipe.difficulty, !difficulty.isEmpty {
-                        Label(difficulty.capitalized, systemImage: "chart.bar.fill")
-                    }
-                }
-                .font(DSTypography.caption)
-                .foregroundStyle(.secondary)
-
-                HStack(spacing: DSSpacing.sm) {
-                    NutritionPill(title: "Kcal", value: "\(recipe.nutrition.calories)", tint: DSColor.yuzu)
-                    NutritionPill(title: "Protein", value: "\(Int(recipe.nutrition.protein))g", tint: DSColor.matcha)
-                    NutritionPill(title: "Fat", value: "\(Int(recipe.nutrition.fats))g", tint: DSColor.yuzu)
-                    NutritionPill(title: "Carbs", value: "\(Int(recipe.nutrition.carbs))g", tint: DSColor.matcha)
-                }
+                Text(LocalizedStringKey(recipe.title))
+                    .font(.system(size: 23, weight: .medium, design: .serif))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
-            .padding(20)
+            .padding(18)
         }
-        .background(.regularMaterial)
+        .frame(height: 340)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(.white.opacity(0.16)) }
-        .shadow(color: .black.opacity(0.08), radius: 18, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.14), radius: 16, x: 0, y: 9)
     }
 }
 
 struct RecipeImageView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isAlive = false
     let url: URL?
 
     var body: some View {
         AsyncImage(url: url) { phase in
             switch phase {
-            case .success(let image): image.resizable().scaledToFill()
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .scaleEffect(reduceMotion ? 1 : (isAlive ? 1.035 : 1.005))
+                    .transition(.opacity.combined(with: .scale(scale: 1.015)))
             default:
-                ZStack {
-                    LinearGradient(colors: [DSColor.matcha.opacity(0.8), DSColor.yuzu.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 42, weight: .light))
-                        .foregroundStyle(.white.opacity(0.9))
-                }
+                MealArtView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.spring(duration: 8.5, bounce: 0).repeatForever(autoreverses: true)) {
+                isAlive = true
+            }
+        }
     }
 }
 
-private struct NutritionPill: View {
-    let title: String
-    let value: String
-    let tint: Color
+struct FittedRecipeImage: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isAlive = false
+    let url: URL?
 
     var body: some View {
-        VStack(spacing: 2) {
-            Text(value).font(DSTypography.caption).foregroundStyle(.primary)
-            Text(title).font(.caption2).foregroundStyle(.secondary)
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .success(let image):
+                ZStack {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .blur(radius: 18)
+                        .scaleEffect(reduceMotion ? 1.14 : (isAlive ? 1.18 : 1.14))
+
+                    Color.black.opacity(0.18)
+
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .scaleEffect(reduceMotion ? 1 : (isAlive ? 1.012 : 1))
+                        .transition(.opacity.combined(with: .scale(scale: 1.01)))
+                }
+            default:
+                MealArtView()
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(tint.opacity(0.14))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.spring(duration: 9.5, bounce: 0).repeatForever(autoreverses: true)) {
+                isAlive = true
+            }
+        }
+    }
+}
+
+private struct MealArtView: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [DSColor.accentSurface, DSColor.background],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            Image(systemName: "fork.knife")
+                .font(.system(size: 42, weight: .light))
+                .foregroundStyle(DSColor.accent)
+        }
     }
 }

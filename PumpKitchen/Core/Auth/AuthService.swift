@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 protocol AuthService {
     func register(email: String, password: String, name: String?) async throws
@@ -15,7 +16,7 @@ final class BackendAuthService: AuthService {
     }
 
     func register(email: String, password: String, name: String?) async throws {
-        let url = try endpoint("auth/register")
+        let url = try endpoint("v1/auth/register")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -24,7 +25,7 @@ final class BackendAuthService: AuthService {
     }
 
     func login(email: String, password: String) async throws -> String {
-        let url = try endpoint("auth/login")
+        let url = try endpoint("v1/auth/login")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -41,12 +42,14 @@ final class BackendAuthService: AuthService {
     }
 
     private func send(_ request: URLRequest) async throws -> Data {
-        let (data, response) = try await session.data(for: request)
+        var localizedRequest = request
+        localizedRequest.setValue(settingsStore.appLanguage.languageCode, forHTTPHeaderField: "Accept-Language")
+        let (data, response) = try await session.data(for: localizedRequest)
         guard let response = response as? HTTPURLResponse else { throw AuthError.invalidResponse }
         guard (200...299).contains(response.statusCode) else {
             let message = (try? JSONDecoder().decode(ErrorResponse.self, from: data).detail)
                 ?? (try? JSONDecoder().decode(MessageResponse.self, from: data).message)
-                ?? "Backend returned status \(response.statusCode)."
+                ?? "Backend returned an error."
             throw AuthError.server(message)
         }
         return data
@@ -62,6 +65,7 @@ private struct MessageResponse: Decodable { let message: String }
 final class AuthSession: ObservableObject {
     @Published private(set) var isAuthenticated: Bool
     @Published private(set) var useMockGeneration: Bool
+    @Published private(set) var needsProfileSetup = false
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -89,7 +93,7 @@ final class AuthSession: ObservableObject {
         }
     }
 
-    func register(name: String, email: String, password: String) async {
+    func register(name: String? = nil, email: String, password: String) async {
         await perform {
             try await service.register(email: email, password: password, name: name)
             let token = try await service.login(email: email, password: password)
@@ -97,30 +101,50 @@ final class AuthSession: ObservableObject {
             settingsStore.useMockGeneration = false
             isAuthenticated = true
             useMockGeneration = false
+            needsProfileSetup = true
         }
     }
 
     func continueWithMock() {
         settingsStore.useMockGeneration = true
+        isAuthenticated = true
         useMockGeneration = true
+        needsProfileSetup = false
         errorMessage = nil
     }
 
     func useBackend() {
         settingsStore.useMockGeneration = false
         useMockGeneration = false
+        isAuthenticated = tokenStore.accessToken != nil
     }
 
     func logout() {
         try? tokenStore.clear()
+        settingsStore.useMockGeneration = false
         isAuthenticated = false
+        useMockGeneration = false
+        needsProfileSetup = false
+    }
+
+    func completeProfileSetup() {
+        needsProfileSetup = false
     }
 
     private func perform(_ operation: () async throws -> Void) async {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
-        do { try await operation() } catch { errorMessage = error.localizedDescription }
+        do {
+            try await operation()
+        } catch {
+            if let tokenStoreError = error as? AuthTokenStoreError {
+                LoggerProvider.app.error("\(tokenStoreError.diagnosticsDescription, privacy: .public)")
+            } else {
+                LoggerProvider.app.error("Auth operation failed: \(error.localizedDescription, privacy: .public)")
+            }
+            errorMessage = UserFacingErrorMessage.auth(error)
+        }
     }
 }
 

@@ -1,7 +1,9 @@
 .DS_Store
 DerivedData/
 .DerivedData/
+.DerivedDataCodexTests/
 build/
+qa-audit-*/
 *.xcuserstate
 xcuserdata/
 *.moved-aside
