@@ -4,6 +4,10 @@
 
 SwiftUI recipe companion that turns the ingredients a user already has into fitness-aware meals. The app supports a production backend, a built-in mock mode, authentication, saved recipes, localization, and a home-screen widget.
 
+## Preview
+
+<img src="docs/screenshots/home.jpg" width="280" alt="Pump Kitchen recipe discovery screen">
+
 ## Highlights
 
 - Search and generate recipes from free-form ingredient input.
