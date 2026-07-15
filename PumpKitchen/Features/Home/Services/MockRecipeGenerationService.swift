@@ -94,7 +94,13 @@ final class MockRecipeGenerationService: RecipeGenerationService {
 
     private func parseIngredient(_ rawValue: String) -> Ingredient {
         let trimmedValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let match = amountExpression.firstMatch(in: trimmedValue, range: NSRange(trimmedValue.startIndex..., in: trimmedValue)) else {
+        guard
+            let amountExpression = Self.amountExpression,
+            let match = amountExpression.firstMatch(
+                in: trimmedValue,
+                range: NSRange(trimmedValue.startIndex..., in: trimmedValue)
+            )
+        else {
             return Ingredient(name: trimmedValue.capitalized, amount: "to taste")
         }
 
@@ -108,7 +114,8 @@ final class MockRecipeGenerationService: RecipeGenerationService {
         return Ingredient(name: name.isEmpty ? trimmedValue.capitalized : name.capitalized, amount: amount.lowercased())
     }
 
-    private var amountExpression: NSRegularExpression {
-        try! NSRegularExpression(pattern: #"\d+(?:[\.,]\d+)?\s*(?:g|gram|grams|kg|ml|l|pcs|piece|pieces)"#, options: [.caseInsensitive])
-    }
+    private static let amountExpression = try? NSRegularExpression(
+        pattern: #"\d+(?:[\.,]\d+)?\s*(?:g|gram|grams|kg|ml|l|pcs|piece|pieces)"#,
+        options: [.caseInsensitive]
+    )
 }
