@@ -6,20 +6,100 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		41C8B95C2C5F2C0500A10001 /* PumpKitchenWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 41C8B9502C5F2C0500A10001 /* PumpKitchenWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		41C8B95B2C5F2C0500A10001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				41C8B95C2C5F2C0500A10001 /* PumpKitchenWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		41C8B9502C5F2C0500A10001 /* PumpKitchenWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PumpKitchenWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		41C8B91F2C5F2C0500A10001 /* Pump Kitchen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Pump Kitchen.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		41C8B9322C5F2C0500A10001 /* PumpKitchenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PumpKitchenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		41C8B9402C5F2C0500A10001 /* PumpKitchenUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PumpKitchenUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		41C8B9232C5F2C0500A10001 /* PumpKitchen */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				41C8B95E2C5F2C0500A10001 /* Exceptions for "PumpKitchen" folder in "Pump Kitchen" target */,
+			);
 			path = PumpKitchen;
+			sourceTree = "<group>";
+		};
+		41C8B9332C5F2C0500A10001 /* PumpKitchenTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PumpKitchenTests;
+			sourceTree = "<group>";
+		};
+		41C8B9412C5F2C0500A10001 /* PumpKitchenUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PumpKitchenUITests;
+			sourceTree = "<group>";
+		};
+		41C8B9512C5F2C0500A10001 /* PumpKitchenWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				41C8B95D2C5F2C0500A10001 /* Exceptions for "PumpKitchenWidget" folder in "PumpKitchenWidgetExtension" target */,
+			);
+			path = PumpKitchenWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		41C8B95D2C5F2C0500A10001 /* Exceptions for "PumpKitchenWidget" folder in "PumpKitchenWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 41C8B9522C5F2C0500A10001 /* PumpKitchenWidgetExtension */;
+		};
+		41C8B95E2C5F2C0500A10001 /* Exceptions for "PumpKitchen" folder in "Pump Kitchen" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 41C8B91E2C5F2C0500A10001 /* Pump Kitchen */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		41C8B91D2C5F2C0500A10001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9342C5F2C0500A10001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9422C5F2C0500A10001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9542C5F2C0500A10001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +113,9 @@
 			isa = PBXGroup;
 			children = (
 				41C8B9232C5F2C0500A10001 /* PumpKitchen */,
+				41C8B9332C5F2C0500A10001 /* PumpKitchenTests */,
+				41C8B9412C5F2C0500A10001 /* PumpKitchenUITests */,
+				41C8B9512C5F2C0500A10001 /* PumpKitchenWidget */,
 				41C8B9202C5F2C0500A10001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,11 +124,38 @@
 			isa = PBXGroup;
 			children = (
 				41C8B91F2C5F2C0500A10001 /* Pump Kitchen.app */,
+				41C8B9322C5F2C0500A10001 /* PumpKitchenTests.xctest */,
+				41C8B9402C5F2C0500A10001 /* PumpKitchenUITests.xctest */,
+				41C8B9502C5F2C0500A10001 /* PumpKitchenWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXContainerItemProxy section */
+		41C8B9312C5F2C0500A10001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 41C8B9162C5F2C0500A10001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 41C8B91E2C5F2C0500A10001;
+			remoteInfo = "Pump Kitchen";
+		};
+		41C8B9432C5F2C0500A10001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 41C8B9162C5F2C0500A10001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 41C8B91E2C5F2C0500A10001;
+			remoteInfo = "Pump Kitchen";
+		};
+		41C8B9592C5F2C0500A10001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 41C8B9162C5F2C0500A10001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 41C8B9522C5F2C0500A10001;
+			remoteInfo = PumpKitchenWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXNativeTarget section */
 		41C8B91E2C5F2C0500A10001 /* Pump Kitchen */ = {
@@ -55,10 +165,12 @@
 				41C8B91C2C5F2C0500A10001 /* Sources */,
 				41C8B91D2C5F2C0500A10001 /* Frameworks */,
 				41C8B91A2C5F2C0500A10001 /* Resources */,
+				41C8B95B2C5F2C0500A10001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				41C8B95A2C5F2C0500A10001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				41C8B9232C5F2C0500A10001 /* PumpKitchen */,
@@ -69,6 +181,74 @@
 			productName = "Pump Kitchen";
 			productReference = 41C8B91F2C5F2C0500A10001 /* Pump Kitchen.app */;
 			productType = "com.apple.product-type.application";
+		};
+		41C8B9382C5F2C0500A10001 /* PumpKitchenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 41C8B93B2C5F2C0500A10001 /* Build configuration list for PBXNativeTarget "PumpKitchenTests" */;
+			buildPhases = (
+				41C8B9362C5F2C0500A10001 /* Sources */,
+				41C8B9342C5F2C0500A10001 /* Frameworks */,
+				41C8B9352C5F2C0500A10001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				41C8B9372C5F2C0500A10001 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				41C8B9332C5F2C0500A10001 /* PumpKitchenTests */,
+			);
+			name = PumpKitchenTests;
+			packageProductDependencies = (
+			);
+			productName = PumpKitchenTests;
+			productReference = 41C8B9322C5F2C0500A10001 /* PumpKitchenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		41C8B9472C5F2C0500A10001 /* PumpKitchenUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 41C8B94A2C5F2C0500A10001 /* Build configuration list for PBXNativeTarget "PumpKitchenUITests" */;
+			buildPhases = (
+				41C8B9452C5F2C0500A10001 /* Sources */,
+				41C8B9422C5F2C0500A10001 /* Frameworks */,
+				41C8B9442C5F2C0500A10001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				41C8B9462C5F2C0500A10001 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				41C8B9412C5F2C0500A10001 /* PumpKitchenUITests */,
+			);
+			name = PumpKitchenUITests;
+			packageProductDependencies = (
+			);
+			productName = PumpKitchenUITests;
+			productReference = 41C8B9402C5F2C0500A10001 /* PumpKitchenUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		41C8B9522C5F2C0500A10001 /* PumpKitchenWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 41C8B9562C5F2C0500A10001 /* Build configuration list for PBXNativeTarget "PumpKitchenWidgetExtension" */;
+			buildPhases = (
+				41C8B9532C5F2C0500A10001 /* Sources */,
+				41C8B9542C5F2C0500A10001 /* Frameworks */,
+				41C8B9552C5F2C0500A10001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				41C8B9512C5F2C0500A10001 /* PumpKitchenWidget */,
+			);
+			name = PumpKitchenWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = PumpKitchenWidgetExtension;
+			productReference = 41C8B9502C5F2C0500A10001 /* PumpKitchenWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -83,6 +263,17 @@
 					41C8B91E2C5F2C0500A10001 = {
 						CreatedOnToolsVersion = 26.0;
 					};
+					41C8B9382C5F2C0500A10001 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 41C8B91E2C5F2C0500A10001;
+					};
+					41C8B9472C5F2C0500A10001 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 41C8B91E2C5F2C0500A10001;
+					};
+					41C8B9522C5F2C0500A10001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 				};
 			};
 			buildConfigurationList = 41C8B9192C5F2C0500A10001 /* Build configuration list for PBXProject "Pump Kitchen" */;
@@ -90,6 +281,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				ru,
 				Base,
 			);
 			mainGroup = 41C8B9152C5F2C0500A10001;
@@ -100,12 +292,36 @@
 			projectRoot = "";
 			targets = (
 				41C8B91E2C5F2C0500A10001 /* Pump Kitchen */,
+				41C8B9382C5F2C0500A10001 /* PumpKitchenTests */,
+				41C8B9472C5F2C0500A10001 /* PumpKitchenUITests */,
+				41C8B9522C5F2C0500A10001 /* PumpKitchenWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		41C8B91A2C5F2C0500A10001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9352C5F2C0500A10001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9442C5F2C0500A10001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9552C5F2C0500A10001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +338,46 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		41C8B9362C5F2C0500A10001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9452C5F2C0500A10001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C8B9532C5F2C0500A10001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		41C8B9372C5F2C0500A10001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 41C8B91E2C5F2C0500A10001 /* Pump Kitchen */;
+			targetProxy = 41C8B9312C5F2C0500A10001 /* PBXContainerItemProxy */;
+		};
+		41C8B9462C5F2C0500A10001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 41C8B91E2C5F2C0500A10001 /* Pump Kitchen */;
+			targetProxy = 41C8B9432C5F2C0500A10001 /* PBXContainerItemProxy */;
+		};
+		41C8B95A2C5F2C0500A10001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 41C8B9522C5F2C0500A10001 /* PumpKitchenWidgetExtension */;
+			targetProxy = 41C8B9592C5F2C0500A10001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		41C8B92B2C5F2C0500A10001 /* Debug */ = {
@@ -245,12 +500,14 @@
 		41C8B92E2C5F2C0500A10001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PumpKitchen/PumpKitchen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PumpKitchen/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pump Kitchen";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -276,12 +533,14 @@
 		41C8B92F2C5F2C0500A10001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PumpKitchen/PumpKitchen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PumpKitchen/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pump Kitchen";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -298,6 +557,146 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.pumpkitchen.PumpKitchen;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		41C8B9392C5F2C0500A10001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pumpkitchen.PumpKitchenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pump Kitchen.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pump Kitchen";
+			};
+			name = Debug;
+		};
+		41C8B93A2C5F2C0500A10001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pumpkitchen.PumpKitchenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pump Kitchen.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pump Kitchen";
+			};
+			name = Release;
+		};
+		41C8B9482C5F2C0500A10001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pumpkitchen.PumpKitchenUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Pump Kitchen";
+			};
+			name = Debug;
+		};
+		41C8B9492C5F2C0500A10001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pumpkitchen.PumpKitchenUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Pump Kitchen";
+			};
+			name = Release;
+		};
+		41C8B9572C5F2C0500A10001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PumpKitchenWidget/PumpKitchenWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PumpKitchenWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pump Kitchen";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pumpkitchen.PumpKitchen.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		41C8B9582C5F2C0500A10001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PumpKitchenWidget/PumpKitchenWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PumpKitchenWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pump Kitchen";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pumpkitchen.PumpKitchen.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -321,6 +720,33 @@
 			buildConfigurations = (
 				41C8B92E2C5F2C0500A10001 /* Debug */,
 				41C8B92F2C5F2C0500A10001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		41C8B93B2C5F2C0500A10001 /* Build configuration list for PBXNativeTarget "PumpKitchenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41C8B9392C5F2C0500A10001 /* Debug */,
+				41C8B93A2C5F2C0500A10001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		41C8B94A2C5F2C0500A10001 /* Build configuration list for PBXNativeTarget "PumpKitchenUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41C8B9482C5F2C0500A10001 /* Debug */,
+				41C8B9492C5F2C0500A10001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		41C8B9562C5F2C0500A10001 /* Build configuration list for PBXNativeTarget "PumpKitchenWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41C8B9572C5F2C0500A10001 /* Debug */,
+				41C8B9582C5F2C0500A10001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

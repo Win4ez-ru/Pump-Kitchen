@@ -6,12 +6,6 @@ struct GlassPanel<Content: View>: View {
     var body: some View {
         content
             .padding(DSSpacing.md)
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(.white.opacity(0.18), lineWidth: 1)
-            }
+            .editorialGlass(cornerRadius: 24)
     }
 }
-

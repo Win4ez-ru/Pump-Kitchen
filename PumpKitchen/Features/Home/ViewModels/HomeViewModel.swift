@@ -50,6 +50,10 @@ final class HomeViewModel: ObservableObject {
         !ingredients.isEmpty && !isLoading
     }
 
+    func isIngredientSelected(_ ingredient: String) -> Bool {
+        ingredients.contains { $0.caseInsensitiveCompare(ingredient) == .orderedSame }
+    }
+
     func loadFrequentIngredients() async {
         do {
             let history = try await historyRepository.fetchHistory()
@@ -89,8 +93,16 @@ final class HomeViewModel: ObservableObject {
         addIngredients([ingredient])
     }
 
+    func toggleQuickIngredient(_ ingredient: String) {
+        if let selected = ingredients.first(where: { $0.caseInsensitiveCompare(ingredient) == .orderedSame }) {
+            removeIngredient(selected)
+        } else {
+            addQuickIngredient(ingredient)
+        }
+    }
+
     func removeIngredient(_ ingredient: String) {
-        ingredients.removeAll { $0 == ingredient }
+        ingredients.removeAll { $0.caseInsensitiveCompare(ingredient) == .orderedSame }
     }
 
     func generateRecipes() async {
@@ -103,8 +115,10 @@ final class HomeViewModel: ObservableObject {
 
         state = .loading
 
+        // The backend only accepts English ingredient names, so user input is
+        // translated locally before the request. History keeps the original text.
         let request = RecipeGenerationRequest(
-            ingredients: ingredients,
+            ingredients: ingredients.map(IngredientTranslator.searchTerm(for:)),
             fitnessGoal: settingsStore.defaultGoal,
             targetProtein: nil,
             servings: 1
@@ -122,7 +136,7 @@ final class HomeViewModel: ObservableObject {
             await loadFrequentIngredients()
             state = .loaded(recipes)
         } catch {
-            state = .failed(error.localizedDescription)
+            state = .failed(UserFacingErrorMessage.recipes(error))
         }
     }
 

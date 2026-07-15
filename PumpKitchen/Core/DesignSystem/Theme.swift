@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct AppBackground: ViewModifier {
-    @Environment(\.colorScheme) private var colorScheme
-
     func body(content: Content) -> some View {
         content
-            .background(colorScheme == .dark ? DSColor.darkPaper : DSColor.ricePaper)
+            .background {
+                DSColor.background
+                    .ignoresSafeArea()
+            }
             .scrollContentBackground(.hidden)
     }
 }
@@ -15,4 +16,3 @@ extension View {
         modifier(AppBackground())
     }
 }
-

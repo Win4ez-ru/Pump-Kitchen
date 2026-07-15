@@ -11,7 +11,10 @@ final class MockRecipeGenerationService: RecipeGenerationService {
         return [
             Recipe(
                 title: "Tokyo Protein Bowl",
+                description: "A clean, savory protein bowl balanced around the ingredients you already have.",
+                imageURL: URL(string: "https://images.unsplash.com/photo-1547592180-85f173990554?w=1200"),
                 cookingTimeMinutes: 24,
+                difficulty: "easy",
                 ingredients: parsedIngredients + [
                     Ingredient(name: "Olive oil", amount: "10g"),
                     Ingredient(name: "Soy sauce", amount: "8g"),
@@ -29,11 +32,15 @@ final class MockRecipeGenerationService: RecipeGenerationService {
                     fats: 18,
                     carbs: request.fitnessGoal == .fatLoss ? 42 : 68
                 ),
+                tips: ["Slice ingredients evenly so everything cooks at the same speed.", "Keep the sauce light, then adjust after tasting."],
                 tags: ["High Protein", goalTag, "Mock"]
             ),
             Recipe(
                 title: "Yuzu Skillet Omelette",
+                description: "A soft high-protein omelette for a fast breakfast or light dinner.",
+                imageURL: URL(string: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=1200"),
                 cookingTimeMinutes: 16,
+                difficulty: "easy",
                 ingredients: [
                     Ingredient(name: "Eggs", amount: "150g"),
                     Ingredient(name: highProteinIngredient, amount: "120g"),
@@ -52,11 +59,15 @@ final class MockRecipeGenerationService: RecipeGenerationService {
                     fats: 22,
                     carbs: 24
                 ),
+                tips: ["Cook on low heat for a soft texture.", "Rest the omelette before slicing."],
                 tags: ["Fast", "Breakfast", "Mock"]
             ),
             Recipe(
                 title: "Minimal Matcha Pasta",
+                description: "Comforting pasta with a protein-forward balance and a glossy tomato finish.",
+                imageURL: URL(string: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=1200"),
                 cookingTimeMinutes: 20,
+                difficulty: "medium",
                 ingredients: [
                     Ingredient(name: "Pasta", amount: request.fitnessGoal == .fatLoss ? "70g" : "100g"),
                     Ingredient(name: highProteinIngredient, amount: "160g"),
@@ -75,6 +86,7 @@ final class MockRecipeGenerationService: RecipeGenerationService {
                     fats: 16,
                     carbs: request.fitnessGoal == .fatLoss ? 58 : 88
                 ),
+                tips: ["Save pasta water before draining.", "Finish the pasta in the pan for a glossy sauce."],
                 tags: ["Comfort", goalTag, "Mock"]
             )
         ]
@@ -82,7 +94,13 @@ final class MockRecipeGenerationService: RecipeGenerationService {
 
     private func parseIngredient(_ rawValue: String) -> Ingredient {
         let trimmedValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let match = amountExpression.firstMatch(in: trimmedValue, range: NSRange(trimmedValue.startIndex..., in: trimmedValue)) else {
+        guard
+            let amountExpression = Self.amountExpression,
+            let match = amountExpression.firstMatch(
+                in: trimmedValue,
+                range: NSRange(trimmedValue.startIndex..., in: trimmedValue)
+            )
+        else {
             return Ingredient(name: trimmedValue.capitalized, amount: "to taste")
         }
 
@@ -96,7 +114,8 @@ final class MockRecipeGenerationService: RecipeGenerationService {
         return Ingredient(name: name.isEmpty ? trimmedValue.capitalized : name.capitalized, amount: amount.lowercased())
     }
 
-    private var amountExpression: NSRegularExpression {
-        try! NSRegularExpression(pattern: #"\d+(?:[\.,]\d+)?\s*(?:g|gram|grams|kg|ml|l|pcs|piece|pieces)"#, options: [.caseInsensitive])
-    }
+    private static let amountExpression = try? NSRegularExpression(
+        pattern: #"\d+(?:[\.,]\d+)?\s*(?:g|gram|grams|kg|ml|l|pcs|piece|pieces)"#,
+        options: [.caseInsensitive]
+    )
 }

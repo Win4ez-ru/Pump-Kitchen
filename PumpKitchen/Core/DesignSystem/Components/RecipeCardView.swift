@@ -2,104 +2,120 @@ import SwiftUI
 
 struct RecipeCardView: View {
     let recipe: Recipe
+    let isSaved: Bool
 
-    private var macroFitScore: Int {
-        let proteinDensity = recipe.nutrition.protein / max(Double(recipe.nutrition.calories), 1) * 1000
-        return min(97, max(78, Int((proteinDensity * 1.25 + 54).rounded())))
+    init(recipe: Recipe, isSaved: Bool = false) {
+        self.recipe = recipe
+        self.isSaved = isSaved
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DSSpacing.md) {
-            HStack(alignment: .top, spacing: DSSpacing.md) {
-                VStack(alignment: .leading, spacing: DSSpacing.xs) {
-                    Text(recipe.title)
-                        .font(DSTypography.title)
-                        .foregroundStyle(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
+        ZStack(alignment: .bottomLeading) {
+            FittedRecipeImage(url: recipe.imageURL)
 
-                    HStack(spacing: DSSpacing.sm) {
-                        Label("\(recipe.cookingTimeMinutes) min", systemImage: "clock")
-                        Label("\(recipe.ingredients.count) items", systemImage: "basket")
-                    }
-                    .font(DSTypography.caption)
-                    .foregroundStyle(.secondary)
-                }
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.04), .black.opacity(0.78)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
-                Spacer()
+            VStack(alignment: .leading, spacing: 10) {
+                RecipeTagStrip(tags: recipe.tags, limit: 2, style: .overImage)
 
-                VStack(spacing: 4) {
-                    Text("\(macroFitScore)%")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
-                    Text("fit")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-                .frame(width: 48, height: 48)
-                .background(LinearGradient(colors: [DSColor.matcha, DSColor.matcha.opacity(0.72)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .clipShape(Circle())
-                .shadow(color: DSColor.matcha.opacity(0.25), radius: 10, x: 0, y: 6)
+                Text(LocalizedStringKey(recipe.title))
+                    .font(.system(size: 23, weight: .medium, design: .serif))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
-
-            HStack(spacing: DSSpacing.sm) {
-                NutritionPill(title: "Kcal", value: "\(recipe.nutrition.calories)", tint: DSColor.yuzu)
-                NutritionPill(title: "Protein", value: "\(Int(recipe.nutrition.protein))g", tint: DSColor.matcha)
-                NutritionPill(title: "Fat", value: "\(Int(recipe.nutrition.fats))g", tint: DSColor.yuzu)
-                NutritionPill(title: "Carbs", value: "\(Int(recipe.nutrition.carbs))g", tint: DSColor.matcha)
-            }
-
-            if !recipe.tags.isEmpty {
-                FlowTags(tags: recipe.tags)
-            }
+            .padding(18)
         }
-        .padding(20)
-        .background(.regularMaterial)
-        .overlay(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.16), lineWidth: 1)
-        }
+        .frame(height: 340)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 18, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.14), radius: 16, x: 0, y: 9)
     }
 }
 
-private struct NutritionPill: View {
-    let title: String
-    let value: String
-    let tint: Color
+struct RecipeImageView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isAlive = false
+    let url: URL?
 
     var body: some View {
-        VStack(spacing: 2) {
-            Text(value)
-                .font(DSTypography.caption)
-                .foregroundStyle(.primary)
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(tint.opacity(0.14))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-}
-
-private struct FlowTags: View {
-    let tags: [String]
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: DSSpacing.sm) {
-                ForEach(tags.prefix(4), id: \.self) { tag in
-                    Text(tag)
-                        .font(DSTypography.caption)
-                        .foregroundStyle(DSColor.matcha)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(DSColor.matcha.opacity(0.12))
-                        .clipShape(Capsule())
-                }
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .scaleEffect(reduceMotion ? 1 : (isAlive ? 1.035 : 1.005))
+                    .transition(.opacity.combined(with: .scale(scale: 1.015)))
+            default:
+                MealArtView()
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.spring(duration: 8.5, bounce: 0).repeatForever(autoreverses: true)) {
+                isAlive = true
+            }
+        }
+    }
+}
+
+struct FittedRecipeImage: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isAlive = false
+    let url: URL?
+
+    var body: some View {
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .success(let image):
+                ZStack {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .blur(radius: 18)
+                        .scaleEffect(reduceMotion ? 1.14 : (isAlive ? 1.18 : 1.14))
+
+                    Color.black.opacity(0.18)
+
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .scaleEffect(reduceMotion ? 1 : (isAlive ? 1.012 : 1))
+                        .transition(.opacity.combined(with: .scale(scale: 1.01)))
+                }
+            default:
+                MealArtView()
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.spring(duration: 9.5, bounce: 0).repeatForever(autoreverses: true)) {
+                isAlive = true
+            }
+        }
+    }
+}
+
+private struct MealArtView: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [DSColor.accentSurface, DSColor.background],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            Image(systemName: "fork.knife")
+                .font(.system(size: 42, weight: .light))
+                .foregroundStyle(DSColor.accent)
         }
     }
 }

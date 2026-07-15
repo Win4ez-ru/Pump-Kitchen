@@ -55,3 +55,121 @@ final class SwiftDataFavoritesRepository: FavoritesRepository {
     }
 }
 
+
+@MainActor
+final class BackendFavoritesRepository: FavoritesRepository {
+    private let settingsStore: AppSettingsStore
+    private let tokenStore: AuthTokenStore
+    private let session: URLSession
+
+    init(settingsStore: AppSettingsStore, tokenStore: AuthTokenStore, session: URLSession = .shared) {
+        self.settingsStore = settingsStore
+        self.tokenStore = tokenStore
+        self.session = session
+    }
+
+    func fetchFavorites() async throws -> [Recipe] {
+        let data = try await send(path: "v1/recipes/saved", method: "GET")
+        return try JSONDecoder().decode([FullRecipeDTO].self, from: data).map(Recipe.init(fullRecipeDTO:))
+    }
+
+    func addToFavorites(_ recipe: Recipe) async throws {
+        guard let backendID = recipe.backendPathIdentifier else { throw BackendFavoritesError.missingBackendID }
+        _ = try await send(path: "v1/recipes/\(backendID)/save", method: "POST")
+    }
+
+    func removeFromFavorites(recipeID: UUID) async throws {
+        guard let backendID = try await favoriteDeleteID(for: recipeID) else {
+            throw BackendFavoritesError.missingBackendID
+        }
+        _ = try await send(path: "v1/recipes/\(backendID)/save", method: "DELETE")
+    }
+
+    func isFavorite(recipeID: UUID) async throws -> Bool {
+        try await fetchFavorites().contains { $0.id == recipeID }
+    }
+
+    private func send(path: String, method: String) async throws -> Data {
+        guard let baseURL = URL(string: settingsStore.backendBaseURL) else { throw BackendFavoritesError.invalidURL }
+        guard let token = tokenStore.accessToken else { throw BackendFavoritesError.authenticationRequired }
+        var request = URLRequest(url: baseURL.appending(path: path))
+        request.httpMethod = method
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("true", forHTTPHeaderField: "ngrok-skip-browser-warning")
+        request.setValue(settingsStore.appLanguage.languageCode, forHTTPHeaderField: "Accept-Language")
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw BackendFavoritesError.invalidResponse }
+        guard (200...299).contains(response.statusCode) else { throw BackendFavoritesError.serverStatus(response.statusCode) }
+        return data
+    }
+
+    private func favoriteDeleteID(for recipeID: UUID) async throws -> String? {
+        let data = try await send(path: "v1/recipes/saved", method: "GET")
+        let decoder = JSONDecoder()
+
+        if let favorites = try? decoder.decode([FullRecipeDTO].self, from: data).map(Recipe.init(fullRecipeDTO:)),
+           let favorite = favorites.first(where: { $0.id == recipeID }) {
+            return favorite.backendPathIdentifier
+        }
+
+        guard let backendID = Recipe(id: recipeID, title: "", cookingTimeMinutes: 0, ingredients: [], instructions: [], nutrition: .init(calories: 0, protein: 0, fats: 0, carbs: 0), tags: []).backendPathIdentifier else {
+            return nil
+        }
+        let favorites = try decoder.decode([BackendFavoriteIdentityDTO].self, from: data)
+
+        return favorites.first { favorite in
+            favorite.endpointValue == backendID || favorite.spoonacularID.map(String.init) == backendID
+        }?.endpointValue ?? backendID
+    }
+}
+
+private struct BackendFavoriteIdentityDTO: Decodable {
+    let id: BackendRecipeID?
+    let spoonacularID: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case spoonacularID = "spoonacular_id"
+    }
+
+    var endpointValue: String? {
+        id?.endpointValue ?? spoonacularID.map(String.init)
+    }
+}
+
+@MainActor
+final class ModeAwareFavoritesRepository: FavoritesRepository {
+    private let local: FavoritesRepository
+    private let backend: FavoritesRepository
+    private let settingsStore: AppSettingsStore
+    private let tokenStore: AuthTokenStore
+
+    init(local: FavoritesRepository, backend: FavoritesRepository, settingsStore: AppSettingsStore, tokenStore: AuthTokenStore) {
+        self.local = local
+        self.backend = backend
+        self.settingsStore = settingsStore
+        self.tokenStore = tokenStore
+    }
+
+    private var active: FavoritesRepository {
+        settingsStore.useMockGeneration || tokenStore.accessToken == nil ? local : backend
+    }
+
+    func fetchFavorites() async throws -> [Recipe] { try await active.fetchFavorites() }
+    func addToFavorites(_ recipe: Recipe) async throws { try await active.addToFavorites(recipe) }
+    func removeFromFavorites(recipeID: UUID) async throws { try await active.removeFromFavorites(recipeID: recipeID) }
+    func isFavorite(recipeID: UUID) async throws -> Bool { try await active.isFavorite(recipeID: recipeID) }
+}
+
+private enum BackendFavoritesError: LocalizedError {
+    case invalidURL, authenticationRequired, missingBackendID, invalidResponse, serverStatus(Int)
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL: "Backend URL is invalid."
+        case .authenticationRequired: "Login is required to use backend favorites."
+        case .missingBackendID: "This recipe is not stored on the backend."
+        case .invalidResponse: "Backend returned an invalid response."
+        case .serverStatus: "Favorites request failed."
+        }
+    }
+}

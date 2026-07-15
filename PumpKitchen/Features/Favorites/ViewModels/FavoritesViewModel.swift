@@ -16,7 +16,7 @@ final class FavoritesViewModel: ObservableObject {
         do {
             recipes = try await favoritesRepository.fetchFavorites()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingErrorMessage.storage(error)
         }
     }
 
@@ -25,7 +25,7 @@ final class FavoritesViewModel: ObservableObject {
             try await favoritesRepository.removeFromFavorites(recipeID: recipe.id)
             recipes.removeAll { $0.id == recipe.id }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingErrorMessage.storage(error)
         }
     }
 }
